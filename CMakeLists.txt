@@ -18,6 +18,20 @@ option( BUILD_SHARED_LIBS "Toggle building shared libraries")
 # install into any other path if necessary. For the same reason lib, bin and
 # include dir for standalone builds are only set if not yet defined.
 
+
+# Daniel Sperka 3/6/2020
+# use CMP0074 policy - ZLIB_ROOT env variable respected.
+# Use directory in c:/ for installation. Can override. The find*.cmake macros seem to have problems
+# when folders have spaces in them. 
+
+IF (WIN32)
+	CMAKE_POLICY(SET CMP0074 NEW)
+	IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+		SET(CMAKE_INSTALL_PREFIX "C:/NIFTI" CACHE PATH "Installation directory" FORCE)
+    ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) 
+	MESSAGE("NIFTI will be installed in ${CMAKE_INSTALL_PREFIX}")
+ENDIF (WIN32)
+
 ###  USE AS PART OF ITK
 if("${ITK_VERSION_MAJOR}" GREATER 0.0)
 #   message(STATUS "---------------------ITK ZLIB  ${ITK_ZLIB_LIBRARIES}")
@@ -43,7 +57,15 @@ else("${ITK_VERSION_MAJOR}" GREATER 0.0)
   set(CPACK_PACKAGE_VERSION_MINOR "0")
   set(CPACK_PACKAGE_VERSION_PATCH "0")
 ###  USE AS STAND ALONE PACKAGE
-   find_package(ZLIB)
+  find_package(ZLIB)
+  IF (ZLIB_FOUND)
+    MESSAGE(STATUS "ZLIB found: ZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIRS}")
+    MESSAGE(STATUS "ZLIB found: ZLIB_LIBRARIES   =${ZLIB_LIBRARIES}")
+	INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
+  ELSE (ZLIB_FOUND)
+	MESSAGE(FATAL_ERROR "Cannot find ZLIB.")
+  ENDIF (ZLIB_FOUND)
+  
 #  message(STATUS "---------------------SYSTEM ZLIB ${ZLIB_LIBRARY}")
   set(PACKAGE_PREFIX "")
   # Set default shared library version
